@@ -30,8 +30,8 @@ contract VerusProof{
     }
 
     function hashTransfers(VerusObjects.CReserveTransfer[] memory _transfers) public view returns (bytes32){
-        bytes memory sTransfers = verusSerializer.serializeCReserveTransfers(_transfers,false);
-        return keccak256(sTransfers);
+
+        return keccak256(verusSerializer.serializeCReserveTransfers(_transfers,false));
     }
 
     function checkProof(bytes32 hashToProve, VerusObjects.CTXProof[] memory _branches) public view returns(bytes32){
@@ -47,13 +47,14 @@ contract VerusProof{
         
         require(_branch.nIndex >= 0,"Index cannot be less than 0");
         require(_branch.branch.length > 0,"Branch must be longer than 0");
-        uint branchLength = _branch.branch.length;
-        bytes32 hashInProgress = _hashToCheck;
+        
+        bytes32 hashInProgress;
+        hashInProgress = _hashToCheck;
         bytes memory joined;
         //hashInProgress = blake2b.bytesToBytes32(abi.encodePacked(_hashToCheck));
         uint hashIndex = _branch.nIndex;
         
-       for(uint i = 0;i < branchLength; i++){
+       for(uint i = 0;i < _branch.branch.length; i++){
             if(hashIndex & 1 > 0){
                 require(_branch.branch[i] != _hashToCheck,"Value can be equal to node but never on the right");
                 //join the two arrays and pass to blake2b
@@ -73,11 +74,16 @@ contract VerusProof{
         //identify if the hashed transfers are in the 
         bytes32 hashedTransfers = hashTransfers(_import.transfers);
         //check they occur in the last elVchObj
-        uint transfersIndex = _import.partialtransactionproof.components[_import.partialtransactionproof.components.length -1].VchObjIndex;
+        uint transfersIndex = _import.partialtransactionproof.components[_import.partialtransactionproof.components.length -1].VchObjIndex + 32;
+        bytes32 incomingValue; 
         bytes memory toCheck = _import.partialtransactionproof.components[_import.partialtransactionproof.components.length -1].elVchObj;
-        bytes32 incomingValue = blake2b.bytesToBytes32(slice(toCheck,transfersIndex,32));
-        if(hashedTransfers == incomingValue) return true;
-        else return false;
+
+            assembly {
+                incomingValue := mload(add(toCheck, transfersIndex))
+            }
+
+        return (hashedTransfers == incomingValue);
+ 
     }
     
     
@@ -116,20 +122,15 @@ contract VerusProof{
         if(!checkTransfers(_import)) return stateRoot;
         
         bytes32 txRoot = proveComponents(_import);
-        if(txRoot == 0x0000000000000000000000000000000000000000000000000000000000000000) return stateRoot;
+        if(txRoot == stateRoot) return stateRoot;
         
         stateRoot = checkProof(txRoot,_import.partialtransactionproof.txproof);
         return stateRoot;
     }
     
     function proveImports(VerusObjects.CReserveTransferImport memory _import) public view returns(bool){
-        bytes32 predictedRootHash;
-        predictedRootHash = proveTransaction(_import);
-        uint32 lastBlockHeight = verusNotarizer.lastBlockHeight();
-        bytes32 predictedStateRoot = flipBytes32(verusNotarizer.notarizedStateRoots(lastBlockHeight));
-        if(predictedRootHash == predictedStateRoot) {
-            return true;
-        } else return false;
+
+         return(proveTransaction(_import) == flipBytes32(verusNotarizer.notarizedStateRoots(verusNotarizer.lastBlockHeight()))); 
     
     }
 

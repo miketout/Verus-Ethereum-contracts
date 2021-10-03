@@ -9,8 +9,10 @@ contract VerusBlake2b {
     using Blake2b for Blake2b.Instance;
 
     function createHash(bytes memory input) public view returns (bytes32) {
-      Blake2b.Instance memory instance = Blake2b.init(hex"", 32);
-      return bytesToBytes32(instance.finalize(input), 0);
+      Blake2b.Instance memory instance = Blake2b.init(hex"", 32); //can only handle 32 bytes 
+
+      return instance.finalize(input);
+      
     }
 
     function bytesToBytes32(bytes memory b, uint256 offset)

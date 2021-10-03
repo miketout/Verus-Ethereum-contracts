@@ -16,12 +16,12 @@ contract VerusSerializer {
         uint len = 0;
         while(true){
             inProgress = bytes1(uint8(incoming & 0x7f) | (len!=0 ? 0x80:0x00));
-            output = abi.encodePacked(output,inProgress);
+            output = abi.encodePacked(inProgress,output);
             if(incoming <= 0x7f) break;
             incoming = (incoming >> 7) -1;
             len++;
         }
-        return flipArray(output);
+        return output;
     }
     
     function writeCompactSize(uint newNumber) public pure returns(bytes memory) {
@@ -69,38 +69,49 @@ contract VerusSerializer {
         return abi.encodePacked(anyBytes20);
     }
     function serializeBytes32(bytes32 anyBytes32) public pure returns(bytes memory){
-        //naturally BigEndian
-        return flipArray(abi.encodePacked(anyBytes32));
+          
+        return abi.encodePacked(reversebytes32(anyBytes32));
     }
 
     function serializeUint8(uint8 number) public pure returns(bytes memory){
-        bytes memory be = abi.encodePacked(number);
-        return(flipArray(be));
+     
+        return abi.encodePacked(number);
     }
     
     function serializeUint16(uint16 number) public pure returns(bytes memory){
-        bytes memory be = abi.encodePacked(number);
-        return(flipArray(be));
+        
+        number = ((number & 0xff00) >>8) | ((number & 0x00ff) << 8);
+        return abi.encodePacked(number);
     }
     
     function serializeUint32(uint32 number) public pure returns(bytes memory){
-        bytes memory be = abi.encodePacked(number);
-        return(flipArray(be));
+        
+        number = ((number & 0xff00ff00) >> 8)  | ((number & 0x00ff00ff) << 8) ;
+        number = ((number & 0xffff0000) >> 16) | ((number & 0x0000ffff) << 16) ;
+
+        return abi.encodePacked(number);
     }
 
     function serializeInt16(int16 number) public pure returns(bytes memory){
-        bytes memory be = abi.encodePacked(number);
-        return(flipArray(be));
+        
+        uint16 numberout = ((uint16(number) & 0xff00) >>8) | ((uint16(number) & 0x00ff) << 8);
+        return abi.encodePacked(numberout);
     }
     
     function serializeInt32(int32 number) public pure returns(bytes memory){
-        bytes memory be = abi.encodePacked(number);
-        return(flipArray(be));
+
+        uint32 numberout = ((uint32(number) & 0xff00ff00) >> 8) | ((uint32(number) & 0x00ff00ff) << 8) ;
+        numberout = ((uint32(number) & 0xffff0000) >> 16) | ((uint32(number) & 0x0000ffff) << 16) ;
+
+        return abi.encodePacked(numberout);
     }
     
     function serializeInt64(int64 number) public pure returns(bytes memory){
-        bytes memory be = abi.encodePacked(number);
-        return(flipArray(be));
+        
+        uint64 numberout = ((uint64(number) & 0xff00ff00ff00ff00) >> 8) | ((uint64(number) & 0x00ff00ff00ff00ff) << 8) ;
+        numberout = ((uint64(number) & 0xffff0000ffff0000) >> 16) | ((uint64(number) & 0x0000ffff0000ffff) << 16) ;
+        numberout = ((uint64(number) & 0xffffffff00000000) >> 32) | ((uint64(number) & 0x00000000ffffffff) << 32) ;
+        return abi.encodePacked(number);
     }
 
     function serializeInt32Array(int32[] memory numbers) public pure returns(bytes memory){
@@ -122,13 +133,16 @@ contract VerusSerializer {
     }
 
     function serializeUint64(uint64 number) public pure returns(bytes memory){
-        bytes memory be = abi.encodePacked(number);
-        return(flipArray(be));
+
+        number = ((number & 0xff00ff00ff00ff00) >> 8) | ((number & 0x00ff00ff00ff00ff) << 8) ;
+        number = ((number & 0xffff0000ffff0000) >> 16) | ((number & 0x0000ffff0000ffff) << 16) ;
+        number = ((number & 0xffffffff00000000) >> 32) | ((number & 0x00000000ffffffff) << 32) ;
+        return abi.encodePacked(number);
     }
 
     function serializeAddress(address number) public pure returns(bytes memory){
-        bytes memory be = abi.encodePacked(number);
-        return be;
+        
+        return abi.encodePacked(number);
         
     }
     
@@ -204,8 +218,8 @@ contract VerusSerializer {
     function serializeCProofRoot(VerusObjectsNotarization.CProofRoot memory _cpr) public pure returns(bytes memory){
         return abi.encodePacked(
             serializeAddress(_cpr.systemid),
-            serializeInt16(_cpr.version),
-            serializeInt16(_cpr.cprtype),
+            serializeUint16(_cpr.version),
+            serializeUint16(_cpr.cprtype),
             serializeAddress(_cpr.systemid),
             serializeUint32(_cpr.rootheight),
             serializeBytes32(_cpr.stateroot),
@@ -352,5 +366,28 @@ contract VerusSerializer {
         }
         return output;
     }
+      function reversebytes32(bytes32 input) internal pure returns (bytes32 v) {
+        v = input;
+    
+        // swap bytes
+        v = ((v & 0xFF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00) >> 8) |
+            ((v & 0x00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF00FF) << 8);
+    
+        // swap 2-byte long pairs
+        v = ((v & 0xFFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000) >> 16) |
+            ((v & 0x0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF0000FFFF) << 16);
+    
+        // swap 4-byte long pairs
+        v = ((v & 0xFFFFFFFF00000000FFFFFFFF00000000FFFFFFFF00000000FFFFFFFF00000000) >> 32) |
+            ((v & 0x00000000FFFFFFFF00000000FFFFFFFF00000000FFFFFFFF00000000FFFFFFFF) << 32);
+    
+        // swap 8-byte long pairs
+        v = ((v & 0xFFFFFFFFFFFFFFFF0000000000000000FFFFFFFFFFFFFFFF0000000000000000) >> 64) |
+            ((v & 0x0000000000000000FFFFFFFFFFFFFFFF0000000000000000FFFFFFFFFFFFFFFF) << 64);
+    
+        // swap 16-byte long pairs
+        v = (v >> 128) | (v << 128);
+    }
+
 
 }

@@ -10,12 +10,12 @@ import "../VerusBridge/VerusSerializer.sol";
 
 contract VerusCrossChainExport{
 
-    VerusObjects.CCurrencyValueMap[] currencies;
-    VerusObjects.CCurrencyValueMap[] fees;
+ //   VerusObjects.CCurrencyValueMap[] currencies;
+ //   VerusObjects.CCurrencyValueMap[] fees;
     VerusSerializer verusSerializer;
  //   event test1(VerusObjects.CCrossChainExport ted);
 
-    function quickSort(VerusObjects.CCurrencyValueMap[] storage currencey, int left, int right) private {
+    function quickSort(VerusObjects.CCurrencyValueMap[] memory currencey, int left, int right) private {
         int i = left;
         int j = right;
         if (i == j) return;
@@ -42,14 +42,14 @@ contract VerusCrossChainExport{
         verusSerializer = VerusSerializer(_verusSerializerAddress);
     }
 
-    function inCurrencies(address checkCurrency) private view returns(int64){
+    function inCurrencies(address checkCurrency, VerusObjects.CCurrencyValueMap[] memory currencies) private view returns(int64){
         for(uint i = 0; i < uint64(currencies.length); i++){
             if(currencies[i].currency == checkCurrency) return int64(i);
         }
         return -1;
     }
 
-    function inFees(address checkFeesCurrency) private view returns(int64){
+    function inFees(address checkFeesCurrency, VerusObjects.CCurrencyValueMap[] memory fees) private view returns(int64){
         for(uint i = 0; i < uint64(fees.length); i++){
             if(fees[i].currency == checkFeesCurrency) return int64(i);
         }
@@ -81,36 +81,39 @@ contract VerusCrossChainExport{
         int64 feeExistsInTotals;
         int64 feeExists;
 
+        VerusObjects.CCurrencyValueMap[] memory currencies;
+        VerusObjects.CCurrencyValueMap[] memory fees;
+        uint256 j; uint256 k;
         for(uint i = 0; i < transfers.length; i++){
-            currencyExists = inCurrencies(transfers[i].currencyvalue.currency);
+            currencyExists = inCurrencies(transfers[i].currencyvalue.currency, workingCCE.totalamounts);
             if(currencyExists >= 0){
-                currencies[uint256(currencyExists)].amount += transfers[i].currencyvalue.amount;
+                workingCCE.totalamounts[uint256(currencyExists)].amount += transfers[i].currencyvalue.amount;
             } else {
-                currencies.push(VerusObjects.CCurrencyValueMap(transfers[i].currencyvalue.currency,transfers[i].currencyvalue.amount));
+                workingCCE.totalamounts[j++] = (VerusObjects.CCurrencyValueMap(transfers[i].currencyvalue.currency,transfers[i].currencyvalue.amount));
             }
             
             //add the fees into the totalamounts too 
-            feeExistsInTotals = inCurrencies(transfers[i].feecurrencyid); 
+            feeExistsInTotals = inCurrencies(transfers[i].feecurrencyid, currencies); 
             if(feeExistsInTotals >= 0){
                 currencies[uint256(feeExistsInTotals)].amount += uint64(transfers[i].fees);
             } else {
-                currencies.push(VerusObjects.CCurrencyValueMap(transfers[i].feecurrencyid,uint64(transfers[i].fees)));
+                currencies[j++] =  (VerusObjects.CCurrencyValueMap(transfers[i].feecurrencyid,uint64(transfers[i].fees)));
             }
 
-            feeExists = inFees(transfers[i].feecurrencyid); 
+            feeExists = inFees(transfers[i].feecurrencyid, workingCCE.totalfees); 
             if(feeExists >= 0){
                 fees[uint256(feeExists)].amount += uint64(transfers[i].fees);
             } else {
-                fees.push(VerusObjects.CCurrencyValueMap(transfers[i].feecurrencyid,uint64(transfers[i].fees)));
+                workingCCE.totalfees[k++] = (VerusObjects.CCurrencyValueMap(transfers[i].feecurrencyid,uint64(transfers[i].fees)));
             }
             
         }
         
-        quickSort(currencies, int(0), int(currencies.length - 1));
-        quickSort(fees, int(0), int(fees.length - 1));
+        quickSort(workingCCE.totalamounts, int(0), int(workingCCE.totalamounts.length - 1));
+        quickSort(workingCCE.totalfees, int(0), int(workingCCE.totalfees.length - 1));
                
-        workingCCE.totalamounts = currencies;
-        workingCCE.totalfees = fees;
+        //workingCCE.totalamounts = currencies;
+        //workingCCE.totalfees = fees;
 
         workingCCE.hashtransfers = hashedTransfers;
         VerusObjects.CCurrencyValueMap memory totalburnedCCVM = VerusObjects.CCurrencyValueMap(0x0000000000000000000000000000000000000000,0);

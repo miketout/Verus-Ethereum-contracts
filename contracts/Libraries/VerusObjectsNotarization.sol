@@ -9,8 +9,8 @@ import "./VerusObjectsCommon.sol";
 library VerusObjectsNotarization {
 
      struct CProofRoot{
-        int16 version;                        // to enable future data types with various functions
-        int16 cprtype;                           // type of proof root
+        uint16 version;                        // to enable future data types with various functions
+        uint16 cprtype;                           // type of proof root
         address systemid;                       // system that can have things proven on it with this root
         uint32 rootheight;                    // height (or sequence) of the notarization we certify
         bytes32 stateroot;                      // latest MMR root of the notarization height

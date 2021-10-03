@@ -187,7 +187,7 @@ library Blake2b {
     function finalize(Instance memory instance, bytes memory data)
         internal
         view
-        returns (bytes memory output)
+        returns (bytes32 output)
     {
         // FIXME: support incomplete blocks (zero pad them)
         uint input_length = data.length;
@@ -201,17 +201,11 @@ library Blake2b {
         // assert(instance.out_len == 64);
 
         bytes memory state = instance.state;
-        output = new bytes(instance.out_len);
-        if(instance.out_len == 32) {
+               
             assembly {
-                mstore(add(output, 32), mload(add(state, 36)))
+                output:= mload(add(state, 36))
             }
-        } else {
-            assembly {
-                mstore(add(output, 32), mload(add(state, 36)))
-                mstore(add(output, 64), mload(add(state, 68)))
-            }
-        }
+       
     }
 
     function concat(
