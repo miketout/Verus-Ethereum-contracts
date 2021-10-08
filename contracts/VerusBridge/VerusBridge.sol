@@ -103,7 +103,7 @@ contract VerusBridge {
                 Token token = tokenManager.getTokenERC20(transfer.feecurrencyid);
                 uint256 VRSTallowedTokens = token.allowance(msg.sender,address(this));
                 require( VRSTallowedTokens >= verusFees,"This contract must have an allowance of greater than or equal to the number of tokens");
-                token.transferFrom(msg.sender,address(this),VerusConstants.verusTransactionFee); 
+                token.transferFrom(msg.sender,address(this),verusFees); 
                 //transfer the tokens to this contract
                 token.burn(verusFees); 
             
