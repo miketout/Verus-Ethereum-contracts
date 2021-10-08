@@ -194,6 +194,25 @@
 				"inputs": [
 					{
 						"internalType": "address",
+						"name": "VRSCAddress",
+						"type": "address"
+					}
+				],
+				"name": "getTokenERC20",
+				"outputs": [
+					{
+						"internalType": "contract Token",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
 						"name": "_destCurrencyID",
 						"type": "address"
 					},
@@ -350,6 +369,14 @@
 		"remappings": []
 	},
 	"sources": {
+		"contracts/Libraries/VerusConstants.sol": {
+			"keccak256": "0xac9d641b4959752e358671b98a82f5ae391d3f224e5664b5552fa4da6dccb396",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://cde1253d6cacb0410221a03a874a21b6c3ddb286b95053f3dbeee6d9786a64fe",
+				"dweb:/ipfs/QmSLkgYguNYQNtHBJDVC2j1yLMuHrvZE3o3GXmGdUNxXum"
+			]
+		},
 		"contracts/VerusBridge/Token.sol": {
 			"keccak256": "0xc9d054b4ad1642089cf76fd4c524de6c3ba2334390ebc7caa0a90e3af858b932",
 			"license": "MIT",
@@ -359,11 +386,11 @@
 			]
 		},
 		"contracts/VerusBridge/TokenManager.sol": {
-			"keccak256": "0x39745ac4f039b276bd7f0b4a05a2457e0532fd2f207ea02a267827f67552a21d",
+			"keccak256": "0xaeecf7398387ed438dc434a896b5ded92c846ac93fc08a0dac79e7567e6edba3",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://89eba73118c2d396f228024ba978cef421ccf8fc2b78a1bf3d37185dd42c2f6e",
-				"dweb:/ipfs/QmSJ3z6muMhPWrY8CLgjNk5aZSzksEp5D1WDCVJyVZM8Ht"
+				"bzz-raw://02256b762e66edf156ff9cd6cf73566104eaa1f8c059ab60ba7b6d6c149b3d23",
+				"dweb:/ipfs/QmRQuYrEc5YQsKwikhMtLNrsWgfuNTyLk5iAAVeCUHTNGk"
 			]
 		},
 		"contracts/VerusBridge/VerusAddressCalculator.sol": {

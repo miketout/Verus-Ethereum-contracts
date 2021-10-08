@@ -14,5 +14,6 @@ library VerusConstants {
     address constant public RewardAddress = 0xB26820ee0C9b1276Aac834Cf457026a575dfCe84;
     uint8 constant public RewardAddressType = 4;
     uint256 constant public transactionFee = 100000000000000; //0.0001 eth
+    uint256 constant public verusTransactionFee = 20000000000000000; //0.02 verus
     string constant public currencyName = "VETH";
 }

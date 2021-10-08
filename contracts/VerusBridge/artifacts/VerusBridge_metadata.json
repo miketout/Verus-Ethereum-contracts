@@ -591,54 +591,6 @@
 				"type": "function"
 			},
 			{
-				"inputs": [
-					{
-						"internalType": "uint256",
-						"name": "a",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint8",
-						"name": "decimals",
-						"type": "uint8"
-					}
-				],
-				"name": "convertFromVerusNumber",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "pure",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "uint256",
-						"name": "a",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint8",
-						"name": "decimals",
-						"type": "uint8"
-					}
-				],
-				"name": "convertToVerusNumber",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "pure",
-				"type": "function"
-			},
-			{
 				"inputs": [],
 				"name": "deprecated",
 				"outputs": [
@@ -1536,11 +1488,11 @@
 	},
 	"sources": {
 		"contracts/Libraries/VerusConstants.sol": {
-			"keccak256": "0x1f56515608af4324b6d9d725b3ab88b97b32e0e557b0215e61e773a3a6d31c82",
+			"keccak256": "0xac9d641b4959752e358671b98a82f5ae391d3f224e5664b5552fa4da6dccb396",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://db5eba3185fe588b353ad545b297297db5e3a9e580e1c51a3f8172446f0a0b75",
-				"dweb:/ipfs/QmdYW5pDhgFqixDzyHTjwb1sCazTHQp4tLJSuW9msB4rXF"
+				"bzz-raw://cde1253d6cacb0410221a03a874a21b6c3ddb286b95053f3dbeee6d9786a64fe",
+				"dweb:/ipfs/QmSLkgYguNYQNtHBJDVC2j1yLMuHrvZE3o3GXmGdUNxXum"
 			]
 		},
 		"contracts/Libraries/VerusObjects.sol": {
@@ -1600,11 +1552,11 @@
 			]
 		},
 		"contracts/VerusBridge/TokenManager.sol": {
-			"keccak256": "0x600008bbc8ba149f21447b653d3af8e7bad6793c7d209840cfb73558335d9331",
+			"keccak256": "0xaeecf7398387ed438dc434a896b5ded92c846ac93fc08a0dac79e7567e6edba3",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://c5af850c1ab28ae1d447f1cc1d49a665fec6f7e1e6b57b73645b54434d1f9088",
-				"dweb:/ipfs/QmZAzY67qhtX6GVcfyWpPsUS1WrkwUort5B5PxhNAQfVXz"
+				"bzz-raw://02256b762e66edf156ff9cd6cf73566104eaa1f8c059ab60ba7b6d6c149b3d23",
+				"dweb:/ipfs/QmRQuYrEc5YQsKwikhMtLNrsWgfuNTyLk5iAAVeCUHTNGk"
 			]
 		},
 		"contracts/VerusBridge/VerusAddressCalculator.sol": {
@@ -1616,19 +1568,19 @@
 			]
 		},
 		"contracts/VerusBridge/VerusBridge.sol": {
-			"keccak256": "0x5ac8390ec37c79c38f45fde78c61144d8e4ed87ad29df8a62251fe1bf14ce6bf",
+			"keccak256": "0x1059c1a45c79a3c89434a33db3d5c36458d492a17182bfa4cd77dd1c04167da3",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://6266ff6ca5406794aa888f906ef26dfe3b86e0d62fa812fcbef297f62683c2c8",
-				"dweb:/ipfs/QmdDhMXFJYeU6b5zXmXFurLbPQ3gXSkNDSjm9zu4FRhQ4G"
+				"bzz-raw://8e8c4442b2c0b4459d4fd65c575c91ee4ebf618c8999fa9590529fe514384fb7",
+				"dweb:/ipfs/QmcSjTW3H335Emt2jcLiLno3KPMNZar9mqYcqSLbnzK7FE"
 			]
 		},
 		"contracts/VerusBridge/VerusCrossChainExport.sol": {
-			"keccak256": "0x84c43e0073ad0c364fd156ec76054629a465b7a8de6fe675616942c764e4d3de",
+			"keccak256": "0xc8842137a1d9281ae124dc71d7fcc63cf77dc948a0a6c3be5046d415ad7cf804",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://4338ed01cd9e822371755f8fdcd1ec8b0c9480bcb055b884e65ddb6df6d69644",
-				"dweb:/ipfs/Qmdn1XPMhHKjUCYS6rC1nZSYGRRaZCVaba7TXkpVbvg5Q7"
+				"bzz-raw://ec2ceabd3b0cf113840c00723a38d6848a824bba9aadc6481ad3880b8b6e8fe9",
+				"dweb:/ipfs/QmbqXkHPSbJhf6QAH3EDJ6LkpcYzo94XN4uwr87ssUpwWG"
 			]
 		},
 		"contracts/VerusBridge/VerusSerializer.sol": {

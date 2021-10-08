@@ -80,71 +80,59 @@ contract VerusBridge {
             //the bridge has been activated
             return false;
         } else {
-            require(_feeCurrencyID == VerusConstants.VerusCurrencyId,"Bridge is not yet available only Verus can be used for fees");
+            require(_feeCurrencyID == VerusConstants.VerusCurrencyId,"1");
             require(poolSize >= _feesAmount,"Bridge is not yet available fees cannot exceed existing pool.");
             return true;
         }
     }
-
-    function convertFromVerusNumber(uint256 a,uint8 decimals) public pure returns (uint256) {
-         uint8 power = 10; //default value for 18
-         uint256 c = a;
-        if(decimals > 8 ) {
-            power = decimals - 8;// number of decimals in verus
-            c = a * (10 ** power);
-        }else if(decimals < 8){
-            power = 8 - decimals;// number of decimals in verus
-            c = a / (10 ** power);
-        }
-      
-        return c;
-    }
-
-    function convertToVerusNumber(uint256 a,uint8 decimals) public pure returns (uint256) {
-         uint8 power = 10; //default value for 18
-         uint256 c = a;
-        if(decimals > 8 ) {
-            power = decimals - 8;// number of decimals in verus
-            c = a / (10 ** power);
-        }else if(decimals < 8){
-            power = 8 - decimals;// number of decimals in verus
-            c = a * (10 ** power);
-        }
-      
-        return c;
-    }
- 
+    
     function export(VerusObjects.CReserveTransfer memory transfer) public payable{
         require(!deprecated,"Contract has been deprecated");
         uint256 requiredFees =  VerusConstants.transactionFee;
+        uint256 verusFees = VerusConstants.verusTransactionFee < transfer.fees ? VerusConstants.verusTransactionFee : transfer.fees;
         
         //if there is fees in the pool spend those and not the amount that
         if(isPoolAvailable(transfer.fees,transfer.feecurrencyid)) {
-            poolSize -= transfer.fees;
+            poolSize -= VerusConstants.verusTransactionFee;
         } else {
+            //if fees are being paid in verustest we need to take it from the msg sender
+            require(transfer.feecurrencyid == VerusConstants.VerusCurrencyId || transfer.feecurrencyid == VerusConstants.VEth,"Verus or VEth can be used for fees");
+            if(transfer.feecurrencyid == VerusConstants.VerusCurrencyId) {
+                
+                //burn the required amount of vrsctest from the user
+                Token token = tokenManager.getTokenERC20(transfer.feecurrencyid);
+                uint256 VRSTallowedTokens = token.allowance(msg.sender,address(this));
+                require( VRSTallowedTokens >= verusFees,"This contract must have an allowance of greater than or equal to the number of tokens");
+                token.transferFrom(msg.sender,address(this),VerusConstants.verusTransactionFee); 
+                //transfer the tokens to this contract
+                token.burn(verusFees); 
+            
+            } else if(transfer.feecurrencyid == VerusConstants.VEth){
+                requiredFees = requiredFees * 3;
+                require(msg.value >= requiredFees + uint64(transfer.fees),"Please send the appropriate transaction fee.");    
+            }
+            //if the fees are being paid in veth then require the user to send it
             //fees need to be paid for verus as well
-            requiredFees = requiredFees * 3;
+            
         }
         
-        require(msg.value >= requiredFees + uint64(transfer.fees),"Please send the appropriate transaction fee.");
+        
         if(transfer.currencyvalue.currency != VerusConstants.VEth){
             //check there are enough fees sent
             feesHeld += msg.value;
             //check that the token is registered
-            (address ERC20TokenAddress, bool VerusOwned, bool isRegistered) = tokenManager.verusToERC20mapping(transfer.currencyvalue.currency);
-            require(isRegistered, "The token is not registered");
-            Token token = Token(ERC20TokenAddress);
+            Token token = tokenManager.getTokenERC20(transfer.currencyvalue.currency);
             uint256 allowedTokens = token.allowance(msg.sender,address(this));
-            uint256 tokenAmount = convertFromVerusNumber(transfer.currencyvalue.amount,token.decimals()); //convert to wei from verus satoshis
+            uint256 tokenAmount = verusCCE.convertFromVerusNumber(transfer.currencyvalue.amount,token.decimals()); //convert to wei from verus satoshis
             require( allowedTokens >= tokenAmount,"This contract must have an allowance of greater than or equal to the number of tokens");
             //transfer the tokens to this contract
             token.transferFrom(msg.sender,address(this),tokenAmount); 
             token.approve(address(tokenManager),tokenAmount);
             //give an approval for the tokenmanagerinstance to spend the tokens
-            tokenManager.exportERC20Tokens(ERC20TokenAddress, tokenAmount);  //total amount kept as wei until export to verus
+            tokenManager.exportERC20Tokens(address(token), tokenAmount);  //total amount kept as wei until export to verus
         } else {
             //handle a vEth transfer
-            transfer.currencyvalue.amount = uint64(convertToVerusNumber(msg.value - VerusConstants.transactionFee,18));
+            transfer.currencyvalue.amount = uint64(verusCCE.convertToVerusNumber(msg.value - VerusConstants.transactionFee,18));
             ethHeld += transfer.currencyvalue.amount;
             feesHeld += VerusConstants.transactionFee;
         }
@@ -242,7 +230,7 @@ contract VerusBridge {
         //check the transfers were in the hash.
         for(uint i = 0; i < _import.transfers.length; i++){
             //handle eth transactions
-            amount = convertFromVerusNumber(uint256(_import.transfers[i].currencyvalue.amount),18);
+            amount = verusCCE.convertFromVerusNumber(uint256(_import.transfers[i].currencyvalue.amount),18);
             if(_import.transfers[i].currencyvalue.currency == VerusConstants.VEth) {
                 //cast the destination as an ethAddress
                     require(amount <= address(this).balance,"Requested amount exceeds contract balance");
