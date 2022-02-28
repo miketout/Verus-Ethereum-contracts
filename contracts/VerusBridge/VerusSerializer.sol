@@ -8,12 +8,11 @@ import "../Libraries/VerusObjectsNotarization.sol";
 
 contract VerusSerializer {
 
-    struct UintReader {
-        uint32 offset;
-        uint32 value;
-    }
+    uint constant ETH_ADDRESS_SIZE_BYTES = 20;
 
-    function readVarUintLE(bytes memory incoming, uint32 offset) public pure returns(VerusSerializer.UintReader memory) {
+
+
+    function readVarUintLE(bytes memory incoming, uint32 offset) public pure returns(VerusObjectsCommon.UintReader memory) {
         uint32 retVal = 0;
         while (true)
         {
@@ -28,14 +27,14 @@ contract VerusSerializer {
                 break;
             }
         }
-        return UintReader(offset, retVal);
+        return VerusObjectsCommon.UintReader(offset, retVal);
     }
 
     // uses the varint encoding from Bitcoin script pushes
     // this does not support numbers larger than uint16, and if it encounters one or any invalid data, it returns a value of 
     // zero and the original offset
-    function readCompactSizeLE(bytes memory incoming, uint32 offset) public pure returns(VerusSerializer.UintReader memory) {
-        uint32 retVal = 0;
+    function readCompactSizeLE(bytes memory incoming, uint32 offset) public pure returns(VerusObjectsCommon.UintReader memory) {
+
         uint8 oneByte;
         assembly {
             oneByte := mload(add(incoming, offset))
@@ -43,7 +42,7 @@ contract VerusSerializer {
         offset++;
         if (oneByte < 253)
         {
-            return UintReader(offset, oneByte);
+            return VerusObjectsCommon.UintReader(offset, oneByte);
         }
         else if (oneByte == 253)
         {
@@ -55,9 +54,9 @@ contract VerusSerializer {
             assembly {
                 oneByte := mload(add(incoming, offset))
             }
-            return UintReader(offset + 1, (twoByte << 8) + oneByte);
+            return VerusObjectsCommon.UintReader(offset + 1, (twoByte << 8) + oneByte);
         }
-        return UintReader(offset, 0);
+        return VerusObjectsCommon.UintReader(offset, 0);
     }
 
     function writeVarInt(uint256 incoming) public pure returns(bytes memory) {
@@ -196,7 +195,7 @@ contract VerusSerializer {
     }
     
     function serializeCTransferDestination(VerusObjectsCommon.CTransferDestination memory ctd) public pure returns(bytes memory){
-        return abi.encodePacked(serializeUint8(ctd.destinationtype),writeCompactSize(20),ctd.destinationaddress);
+        return abi.encodePacked(serializeUint8(ctd.destinationtype),writeCompactSize(ETH_ADDRESS_SIZE_BYTES),ctd.destinationaddress);
     }    
 
     function serializeCCurrencyValueMap(VerusObjects.CCurrencyValueMap memory _ccvm) public pure returns(bytes memory){
@@ -400,6 +399,54 @@ contract VerusSerializer {
             pos++;
         }
         return output;
+    }
+
+    function deSerializeCurrencyDefinition(bytes memory input)
+         public
+         pure
+         returns (
+             VerusObjects.CcurrencyDefinition memory ccurrencyDefinition
+         )
+    {
+        uint32 nextOffset;
+        uint8 nameStringLength;
+        address parent;
+        address launchSystemID;
+        address systemID;
+        address nativeCurrencyID;
+        uint32 CCC_PREFIX_TO_PARENT = 4 + 4 + 20;
+        uint32 CCC_ID_LEN = 20;
+
+        nextOffset = CCC_PREFIX_TO_PARENT;
+
+        assembly {
+            parent := mload(add(input, nextOffset)) // this should be parent ID
+            nextOffset := add(nextOffset, 1) // and after that...
+            nameStringLength := mload(add(input, nextOffset)) // string length MAX 64 so will always be a byte
+        }
+
+        ccurrencyDefinition.parent = parent;
+
+        bytes memory name = new bytes(nameStringLength);
+
+        for (uint256 i = 0; i < nameStringLength; i++) {
+            name[i] = input[i + nextOffset];
+        }
+
+        ccurrencyDefinition.name = string(name);
+        nextOffset = nextOffset + nameStringLength + CCC_ID_LEN;
+
+        assembly {
+            launchSystemID := mload(add(input, nextOffset)) // this should be launchsysemID
+            nextOffset := add(nextOffset, CCC_ID_LEN)
+            systemID := mload(add(input, nextOffset)) // this should be systemID 
+            nextOffset := add(nextOffset, CCC_ID_LEN)
+            nativeCurrencyID := mload(add(input, nextOffset)) //TODO: daemon serilaization to be changed this should be nativeCurrencyID
+        }
+
+        ccurrencyDefinition.launchSystemID = launchSystemID;
+        ccurrencyDefinition.systemID = systemID;
+        ccurrencyDefinition.nativeCurrencyID = nativeCurrencyID;
     }
 
 }
